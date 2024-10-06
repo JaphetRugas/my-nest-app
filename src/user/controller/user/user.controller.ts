@@ -1,33 +1,42 @@
-import { Body, Controller, Get, Post, Req, Res, Param, Query, UsePipes, ValidationPipe, ParseIntPipe } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Res, Param, Query, UsePipes, ValidationPipe, ParseIntPipe, ParseBoolPipe, Put, Patch, Delete } from '@nestjs/common';
 import { isString } from 'class-validator';
 import { Request, Response } from 'express';
 import { CreateUserDTO } from 'src/user/dtos/CreateUser.dto';
 
 @Controller('user')
 export class UserController {
+    private users = [
+        { id: 1, username: 'John Doe', age: 30 },
+        { id: 2, username: 'Jane Doe', age: 25 },
+        { id: 3, username: 'Bob Smith', age: 40 },
+        { id: 4, username: 'Alice Johnson', age: 35 },
+        { id: 5, username: 'Mike Brown', age: 20 },
+    ];
 
     @Get()
-    getUsers() {
-        return { username: 'Jade', email: "jade@gmail.com" };
+    getUsers(@Query('sortDesc', ParseBoolPipe) sortDesc: boolean) {
+
+        // if (sortDesc) {
+        //     return this.users.sort((a, b) => b.age - a.age);
+        // } else {
+        //     return this.users.sort((a, b) => a.age - b.age);
+        // }
+        return this.users.sort((a, b) => (sortDesc ? b.age - a.age : a.age - b.age));             // simplified
+
+        // return sortDesc ? this.users.sort((a, b) => b.id - a.id) : this.users.sort((a, b) => a.id - b.id);
+
     }
 
 
     @Get('sort')
-    getSortedUser(@Query('sort') sort: string) {
-        const users = [
-            { id: 1, name: 'John Doe', age: 30 },
-            { id: 2, name: 'Jane Doe', age: 25 },
-            { id: 3, name: 'Bob Smith', age: 40 },
-            { id: 4, name: 'Alice Johnson', age: 35 },
-            { id: 5, name: 'Mike Brown', age: 20 },
-        ];
+    getSortedUser(@Query('sort') sort: string) { 
 
         if (sort === 'asc') {
-            return users.sort((a, b) => a.age - b.age);
+            return this.users.sort((a, b) => a.age - b.age);
         } else if (sort === 'dsc') {
-            return users.sort((a, b) => b.age - a.age);
+            return this.users.sort((a, b) => b.age - a.age);
         } else {
-            return users;
+            return this.users;
         }
     }
 
@@ -36,13 +45,22 @@ export class UserController {
     @Post('/create')
     @UsePipes(new ValidationPipe)
     createUser(@Body() formData: CreateUserDTO) {
-        return {
-            message: 'User created successfully!',
-            user: {
-                username: formData.username,
-                email: formData.email
-            }
+        // return {
+        //     message: 'User created successfully!',
+        //     user: {
+        //         username: formData.username,
+        //         email: formData.email
+        //     }
+        // };
+        const newUser = { 
+            id: this.users.length + 1, 
+            username: formData.username,
+            age: formData.age, 
+            email: formData.email
         };
+
+        this.users.push(newUser);
+        return { message: 'User created successfully!', user: newUser };
     }
 
     // Version 2 for post requests - nestjs way
@@ -81,7 +99,7 @@ export class UserController {
     // Nestjs way
     @Get(':id')
     getUserById(@Param('id', ParseIntPipe) id: number) {
-        return { username: `Jade ${id}`, email: "jade@gmail.com",  isString: isString(id)  };
+        return this.users.find(user => user.id === id) || { message: 'User not found' };
     }
 
     // Nestjs way
@@ -96,5 +114,41 @@ export class UserController {
         return response.json(request.params);
     }
 
+
+    // Update user (PUT)
+    @Put(':id')
+    updateUser(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: CreateUserDTO) {
+        const userIndex = this.users.findIndex(user => user.id === id);
+        if (userIndex > -1) {
+            this.users[userIndex] = { id, username: updateUserDto.username, age: updateUserDto.age };
+            return { message: 'User updated successfully!', user: this.users[userIndex] };
+        }
+        return { message: 'User not found' };
+    }
+
+    // Partially update user (PATCH)
+    @Patch(':id')
+    partialUpdateUser(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: Partial<CreateUserDTO>) {
+        const userIndex = this.users.findIndex(user => user.id === id);
+        if (userIndex > -1) {
+            this.users[userIndex] = { ...this.users[userIndex], ...updateUserDto };
+            return { message: 'User updated successfully!', user: this.users[userIndex] };
+        }
+        return { message: 'User not found' };
+    }
+
+    // Delete user
+    @Delete(':id')
+    deleteUser(@Param('id', ParseIntPipe) id: number) {
+        const userIndex = this.users.findIndex(user => user.id === id);
+        if (userIndex > -1) {
+            this.users.splice(userIndex, 1);
+            return { message: 'User deleted successfully!' };
+        }
+        return { message: 'User not found' };
+    }
+
+
+    
 
 }
