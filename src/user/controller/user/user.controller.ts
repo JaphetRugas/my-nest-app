@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Post, Req, Res, Param, Query, UsePipes, ValidationPipe, ParseIntPipe, ParseBoolPipe, Put, Patch, Delete } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { CreateUserDTO } from 'src/user/dtos/CreateUser.dto';
+import { ValidateCreateUserPipe } from 'src/user/pipes/validate-create-user.pipe';
 import { UserService } from 'src/user/services/user/user.service';
 
 @Controller('user')
@@ -19,9 +20,10 @@ export class UserController {
 
     // Version 1 for post requests - nestjs way
     // note that 'formData' can be name anything
+    // ValidateCreateUserPipe use for the age to be always a number - though we can just setup the DTO for @IsNumber(), dont know why though
     @Post('/create')
     @UsePipes(new ValidationPipe)
-    createUser(@Body() formData: CreateUserDTO) {
+    createUser(@Body(ValidateCreateUserPipe) formData: CreateUserDTO) {
         return this.userService.createUser(formData);
     }
 
@@ -68,7 +70,8 @@ export class UserController {
     // Express way to get route parameter
     @Get("/express/:ids")
     getUserById2(@Req() request: Request, @Res() response: Response) {
-        const user = this.userService.getUserById(request.param);
+        const id = parseInt(request.param('ids'));
+        const user = this.userService.getUserById(id);
         return response.json(user);
     }
 
@@ -85,9 +88,9 @@ export class UserController {
     }
 
     // Delete user
-    @Delete(':id')
+    @Delete(':id') 
     deleteUser(@Param('id', ParseIntPipe) id: number) {
         return this.userService.deleteUser(id);
-    }  
+    }
 
 }

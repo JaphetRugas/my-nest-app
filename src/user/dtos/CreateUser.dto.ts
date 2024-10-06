@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty } from "class-validator";
+import { IsEmail, IsNotEmpty, IsNumber } from "class-validator";
 
 export class CreateUserDTO {
     @IsNotEmpty()
@@ -9,5 +9,6 @@ export class CreateUserDTO {
     email: string;
 
     @IsNotEmpty()
+    // @IsNumber() // commented out to use pipes for validation
     age: number;
 }
