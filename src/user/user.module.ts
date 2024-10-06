@@ -16,17 +16,17 @@ export class UserModule implements NestModule {
 
         // Explicit application
         consumer
-            .apply(AuthMiddleware).forRoutes(
-                {
-                    path: 'user',                       // specific path
-                    method: RequestMethod.GET,          // http method used
-                },
-                {
-                    path: 'user/sort',                  // specific path
-                    method: RequestMethod.GET,          // http method used
-                },
+            // .apply(AuthMiddleware).forRoutes(
+                // {
+                //     path: 'user',                       // specific path
+                //     method: RequestMethod.GET,          // http method used
+                // },
+                // {
+                //     path: 'user/sort',                  // specific path
+                //     method: RequestMethod.GET,          // http method used
+                // },
 
-            )
+            // )
             .apply(LoggingMiddleware).forRoutes('*')
     }
 }

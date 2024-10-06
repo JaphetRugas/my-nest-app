@@ -1,10 +1,12 @@
-import { Body, Controller, Get, Post, Req, Res, Param, Query, UsePipes, ValidationPipe, ParseIntPipe, ParseBoolPipe, Put, Patch, Delete } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Res, Param, Query, UsePipes, ValidationPipe, ParseIntPipe, ParseBoolPipe, Put, Patch, Delete, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { CreateUserDTO } from 'src/user/dtos/CreateUser.dto';
+import { AuthGuard } from 'src/user/guard/auth.guard';
 import { ValidateCreateUserPipe } from 'src/user/pipes/validate-create-user.pipe';
 import { UserService } from 'src/user/services/user/user.service';
 
 @Controller('user')
+@UseGuards(AuthGuard)
 export class UserController {
     constructor(private readonly userService: UserService) { }
 
